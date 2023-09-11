@@ -1,14 +1,11 @@
 import streamlit as st
 import pandas as pd
-from lib.load_hf_dataset import load_hf_dataset
-from datasets import load_dataset
+from lib.load_dataset import load_dataset
 import os
 
 ################################
 ######### Variables ############
 ################################
-HF_API_KEY = os.environ.get("HF_API_KEY")
-DATA_SET = os.environ.get("DATA_SET")
 
 ################################
 ####### GenericFunctions #######
@@ -16,7 +13,7 @@ DATA_SET = os.environ.get("DATA_SET")
     
 def save_dataset():
     # Load a dataset from the Hugging Face Hub
-    dataset = load_hf_dataset()
+    dataset = load_dataset()
 
     # Create a directory to save the files
     output_directory = "data"
@@ -25,13 +22,13 @@ def save_dataset():
 
     # Iterate through the dataset and save each file to the data folder
     print(dataset)
-    for split in dataset.keys():
+    # for split in dataset.keys():
         # for file_name, file_content in enumerate(dataset[split]):
         #     file_path = os.path.join(output_directory, file_name)    
         #     with open(file_path, 'w', encoding='utf-8') as file:
         #         file.write(file_content)
     
-            print(f"Saved: {split}")
+            # print(f"Saved: {split}")
 
     # print("All files saved successfully.")
 
