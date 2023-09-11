@@ -4,12 +4,12 @@ from lib.authentication import GoogleAuthenticator
 authenticator = GoogleAuthenticator()
 
 # Define the login route
-@st.cache(allow_output_mutation=True)
+@st.cache_data
 def get_authorization_url():
     return authenticator.get_authorization_url()
 
 # Define the callback route
-@st.cache(allow_output_mutation=True)
+@st.cache_data
 def fetch_token(code):
     token = authenticator.fetch_token(code)
     return token
