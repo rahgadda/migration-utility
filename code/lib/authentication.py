@@ -16,5 +16,17 @@ class GoogleAuthenticator:
         self.redirect_uri = REDIRECT_URI
         self.authorize_url = AUTHORIZE_URL
         self.token_url = TOKEN_URL
+        self.oauth = OAuth2Session(
+            client_id=self.client_id,
+            client_secret=self.client_secret,
+            redirect_uri=self.redirect_uri,
+            scope='openid email profile',
+        )
 
+    def get_authorization_url(self):
+        return self.oauth.create_authorization_url(self.authorize_url)
+
+    def fetch_token(self, code):
+        token = self.oauth.fetch_access_token(self.token_url, authorization_response=code)
+        return token
         
