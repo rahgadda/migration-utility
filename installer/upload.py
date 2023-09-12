@@ -13,20 +13,24 @@ import os
 ####### Display of data ########
 ################################
 
-# -- List datat in parent folder
-print("Listing Existing Files")
-list_files = gdrive.list_files_in_folder()
-print(gdrive.list_files_in_folder())
+# -- List data in parent folder
+print("Listing Existing Files --> ")
+gdrive.list_all_files()
+print()
 
-if len(list_files)>0:
-    gdrive.delete_all_files_in_folder()
+# -- Delete all files
+print("Deleting Existing Files --> ")
+gdrive.delete_all_files()
+print()
 
-# Get the current script's directory
+# -- Get the current script's directory
 current_directory = os.path.dirname(os.path.abspath(__file__))
 
 # -- Replace with the path to your CSV file
+print("Base Data Location --> ")
 csv_file_path = current_directory+'/data/project.csv'
 print("csv_file_path -- "+csv_file_path)
+print()
 
 # -- Check if the CSV file exists
 if not os.path.exists(csv_file_path):
@@ -36,8 +40,13 @@ if not os.path.exists(csv_file_path):
 file_name = os.path.basename(csv_file_path)
 
 # -- Create a new file on Google Drive with the CSV file
-try:
-    gdrive.create_file(file_name)
-    print(f"Created and uploaded '{file_name}' to Google Drive.")
-except Exception as e:
-    print(f"Error creating/uploading file: {e}")
+print("File Upload --> ")
+gdrive.create_file(csv_file_path)
+print(f"Created and uploaded '{file_name}' to Google Drive.")
+print()
+
+# -- Verification
+print("Verification --> ")
+file_id= gdrive.get_files_id_by_name("project.csv")
+print(f"Google Drive have file'{file_name}' with id '{file_id['id']}'")
+print()

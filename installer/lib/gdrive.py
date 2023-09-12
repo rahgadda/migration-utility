@@ -6,7 +6,6 @@ from googleapiclient.http import MediaFileUpload
 import json
 
 # Get environment variables
-PARENT_FOLDER_ID = os.getenv('PARENT_FOLDER_ID')
 CLIENT_ID = os.getenv('CLIENT_ID')
 CLIENT_EMAIL = os.getenv('CLIENT_EMAIL')
 PRIVATE_KEY_ID = os.getenv('PRIVATE_KEY_ID')
@@ -34,6 +33,7 @@ def get_drive_service():
     """
     Authenticate and return the Google Drive API service.
     """
+    
     # Build and return the Drive service
     credentials = service_account.Credentials.from_service_account_info(
                                                                             JSON_DATA, 
@@ -42,64 +42,66 @@ def get_drive_service():
     service = build('drive', 'v3', credentials=credentials)
     return service
 
-# List all files
-def list_files_in_folder():
+# List all files 
+def list_all_files():
     """
-    List all file IDs and names in a parent folder in Google Drive using an API key.
-    """
-
-    # Build the Drive service
-    drive_service = get_drive_service()
-
-    # Set the query parameters
-    query = f"'{PARENT_FOLDER_ID}' in parents"
-    fields = 'files(id, name)'
-    pageSize = 1000  # Set an appropriate page size to retrieve all files
-
-    # List all files in the parent folder
-    results = drive_service.files().list(
-        q=query, fields=fields, pageSize=pageSize).execute()
-    files = results.get('files', [])
-
-    return files
-
-# Get File ID from File Name
-def get_files_id_by_name(file_names):
-    """
-    List file IDs for specific file names in a parent folder in Google Drive using an API key.
-    """
-
-    # Build the Drive service
-    drive_service = get_drive_service()
-
-    # Set the query parameters
-    query = f"'{PARENT_FOLDER_ID}' in parents and name = '{file_names}'"
-    fields = 'files(id, name)'
-    pageSize = 1000  # Set an appropriate page size to retrieve all files
-
-    # List the files matching the query in the parent folder
-    results = drive_service.files().list(
-        q=query, fields=fields, pageSize=pageSize).execute()
-    files = results.get('files', [])
-
-    return files[0]
-
-
-# Create a new file
-def create_file(file_name):
-    """
-    Create a new file on Google Drive.
+    List all file IDs and names in Google Drive.
     """
 
     # Build the Drive service
     drive_service = get_drive_service()
 
     try:
-        file_name = os.path.basename(file_name)
-        media = MediaFileUpload(file_name, mimetype='application/octet-stream')
+        results = drive_service.files().list(fields="nextPageToken, files(id, name)").execute()
+        files = results.get('files', [])
+
+        if not files:
+            print("No files found in Google Drive.")
+        else:
+            for file in files:
+                print(f"File ID: {file['id']}, Name: {file['name']}")
+    except Exception as e:
+        print(f"Error listing files: {e}")
+        raise e
+
+# Get File ID from File Name
+def get_files_id_by_name(file_names):
+    """
+    List file IDs for specific file names in Google Drive.
+    """
+
+    # Build the Drive service
+    drive_service = get_drive_service()
+
+    # Set the query parameters
+    fields = 'files(id, name)'
+    pageSize = 1000  # Set an appropriate page size to retrieve all files
+
+    # List the files matching the query
+    results = drive_service.files().list(
+                                            fields=fields, 
+                                            pageSize=pageSize
+                                        ).execute()
+    files = results.get('files', [])
+
+    return files[0]
+
+
+# Create a new file
+def create_file(file_path):
+    """
+    Create a new file on Google Drive.
+    """
+
+    # Build the Drive service
+    print(file_path)
+    drive_service = get_drive_service()
+
+    try:
+        file_name = os.path.basename(file_path)
+        media = MediaFileUpload(file_path, mimetype='application/octet-stream')
         file_metadata = {'name': file_name}
-        file_metadata['parents'] = [PARENT_FOLDER_ID]
-        file = service.files().create(
+        file = drive_service.files().create(
             body=file_metadata,
             media_body=media,
             fields='id'
@@ -109,7 +111,8 @@ def create_file(file_name):
         return file
     except Exception as e:
         print(f"Upload error: {e}")
-        return None
+        raise e
+
 # Update existing file
 def update_file(new_file):
     """
@@ -141,29 +144,32 @@ def delete_file(file_id):
         print(f"Deleted file with ID: {file_id}")
     except Exception as e:
         print(f"Error deleting file with ID {file_id}: {e}")
+        raise e
 
-# List and delete all files in the parent folder
-def delete_all_files_in_folder():
+# List and delete all files 
+def delete_all_files():
     """
-    List and delete all files in a parent folder in Google Drive using an API key.
+    List and delete all files in Google Drive.
     """
 
     # Build the Drive service
     drive_service = get_drive_service()
 
-    # Set the query parameters to list all files in the parent folder
-    query = f"'{PARENT_FOLDER_ID}' in parents"
+    # Set the query parameters to list all files
     fields = 'files(id, name)'
     pageSize = 1000  # Set an appropriate page size to retrieve all files
 
     try:
-        # List all files in the parent folder
+        # List all files
         results = drive_service.files().list(
-            q=query, fields=fields, pageSize=pageSize).execute()
+                                                fields=fields, 
+                                                pageSize=pageSize                  
+                                            ).execute()
         files = results.get('files', [])
 
         # Delete each file in the list
         for file in files:
             delete_file(file['id'])
     except Exception as e:
-        print(f"Error deleting files in folder {PARENT_FOLDER_ID}: {e}")
+        print(f"Error deleting files: {e}")
+        raise e
