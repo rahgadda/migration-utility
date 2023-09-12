@@ -162,24 +162,25 @@ def download_file(file_name, save_path):
 
     try:
         file_id = get_files_id_by_name(file_name)
-        request = drive_service.files().get_media(fileId=file_id)
-        fh = io.FileIO(save_path, 'wb')
-        downloader = request.execute()
+        request = drive_service.files().get_media(fileId=file_id['id'])
+        fh = io.FileIO(save_path+file_name, 'wb')
 
-        # Download the file in chunks
+        # Download the file in chunks and write to the local file
+        downloader = request.execute().decode("utf-8")
+        
         if 'size' in downloader:
             file_size = int(downloader['size'])
             chunk_size = 1024 * 1024  # 1MB chunks (adjust as needed)
 
             while downloader:
                 if 'data' in downloader:
-                    fh.write(downloader['data'])
+                    fh.write(downloader['data'].encode('utf-8'))
                 status, downloader = service.files().get_media(fileId=file_id, downloadStatus=status).execute()
                 print(f"Downloaded {fh.tell()}/{file_size} bytes.")
         else:
-            fh.write(downloader)
+            fh.write(downloader.encode('utf-8'))
+
         print(f"Downloaded file '{file_id}' to '{save_path}'")
-    
     except Exception as e:
         print(f"Download error: {e}")
         raise e
