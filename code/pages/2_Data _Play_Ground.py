@@ -11,13 +11,14 @@ import pandasql as psql
 ################################
 # -- Loading Variables
 script_directory = os.path.dirname(os.path.abspath(sys.argv[0]))
+file_details =  pd.DataFrame(columns=['file_name', 'data'])
 
 # -- Loading Session Data
 if 'project_data' not in st.session_state:
     st.session_state.project_data = pd.read_csv(script_directory+'/data/project.csv')
 
 if 'global_dataframe' not in st.session_state:
-    st.session_state.global_dataframe = []
+    st.session_state.global_dataframe=file_details
 
 ################################
 ####### GenericFunctions #######
@@ -27,14 +28,13 @@ def generate_column_names(end):
     if 1 > end:
         raise ValueError("End value must be grater than 1")
 
-    column_names = [f"Col{i}" for i in range(1, end + 1)]
+    column_names = [f"Col{i}" for i in range(1, end+2)]
     return column_names
 
 # -- Add missing separator
-def add_missing_separators(file_data,separator,max_header_count,usecols):
+def add_missing_separators(file_data,separator,max_header_count):
     # Create a list to hold the modified rows
     modified_rows = []
-    modified_rows.append(usecols)
 
     for line in file_data:
         
@@ -45,8 +45,6 @@ def add_missing_separators(file_data,separator,max_header_count,usecols):
         if count < max_header_count:
             separator_str=separator * (max_header_count - count)
             line = line + separator_str
-        
-        print("line - "+line)
 
         # Added modified line
         modified_rows.append(line)
@@ -54,29 +52,41 @@ def add_missing_separators(file_data,separator,max_header_count,usecols):
     return modified_rows
 
 # -- Create global dataframes
-def create_global_df(sep=",", usecols=None,max_header_count=1):
+def create_global_df(sep=",", usecols=None, max_header_count=1):
+    file_details =  pd.DataFrame(columns=['file_name','data'])
     try:
         if uploaded_files is not None:
             for file in uploaded_files:
                 if usecols is not None:
                     file_data = io.StringIO(file.read().decode())
-                    modified_rows = add_missing_separators(file_data, sep,max_header_count,usecols)
-                    df = pd.DataFrame(modified_rows)
-                    st.header("Custom")
-                    st.write(df)
+                    modified_rows = add_missing_separators(file_data, sep,max_header_count)
+                    df = pd.DataFrame(each_row.split(sep) for each_row in modified_rows)
+                    df.columns = usecols
                 else:
                     df = pd.read_csv(file, sep=sep)
 
                 pattern = r'([^/]+)\.csv$'
                 match = re.search(pattern, file.name)
                 file_name = match.group(1)
+                file_details.loc[len(file_details)] =  {
+                                                          'file_name':file_name,
+                                                          'data':df
+                                                       }
 
-                st.session_state.global_dataframe.append(file_name)
-
-                globals()['%s' % file_name] = df
+        st.session_state.global_dataframe = file_details
     except Exception as e:
         st.error(f"Error processing csv: {str(e)}")
         raise e
+
+# -- Load global dataframes
+def load_global_df():
+    if st.session_state.header:
+        print("Added Headers")
+        usecols = generate_column_names(st.session_state.header_count)
+        create_global_df(sep,usecols,st.session_state.header_count)
+    else:
+        print("No Headers Added")
+        create_global_df(sep)
 
 ################################
 ####### Display of data ########
@@ -129,13 +139,7 @@ st.text("")
 col1, col2, col3, col4 = st.columns([0.75,0.5,0.5,8.25])
 sep = st.session_state.delimiter
 if col1.button("Load Data"):
-    if st.session_state.header:
-        print("Added Headers")
-        usecols = generate_column_names(st.session_state.header_count)
-        create_global_df(sep,usecols,st.session_state.header_count)
-    else:
-        print("No Headers Added")
-        create_global_df(sep)
+    load_global_df()
 
 if col2.button("SQL"):
     None
@@ -143,13 +147,16 @@ if col2.button("SQL"):
 if col3.button("Save"):
     None
 
+if len(st.session_state.global_dataframe)>0 :
+    print("Count of stored files - "+str(len(st.session_state.global_dataframe)))
+    col1, col2, col3 = st.columns(3)
+    col1.selectbox(
+                        label="Select Table Name",
+                        key="table_name",
+                        options=st.session_state.global_dataframe['file_name']
+                  )
 
-# if len(st.session_state.global_dataframe) > 0:
-#     col1, col2, col3 = st.columns(3)
-#     col1.selectbox(
-#                         label="Select Table Name",
-#                         key="table_name",
-#                         options=st.session_state.global_dataframe
-#                   )
+    for index, row in st.session_state.global_dataframe.iterrows():
+        globals()['%s' % row['file_name']] = row['data']
 
-#     st.dataframe(psql.sqldf("select * from "+st.session_state.table_name, globals()))
+    st.dataframe(psql.sqldf("select * from "+st.session_state.table_name, globals()))
