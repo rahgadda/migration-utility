@@ -11,3 +11,7 @@ import streamlit as st
 ################################
 ####### Display of data ########
 ################################
+
+# -- Streamlit Settings
+st.set_page_config(layout='wide')
+st.title("Dashboard")
