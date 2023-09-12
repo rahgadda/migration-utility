@@ -15,6 +15,13 @@ if 'project_data' not in st.session_state:
 ################################
 ####### GenericFunctions #######
 ################################
+# -- Create Dynamic Columns
+def generate_column_names(end):
+    if 1 > end:
+        raise ValueError("End value must be grater than 1")
+
+    column_names = [f"Col{i}" for i in range(start, end + 1)]
+    return column_names
 
 
 ################################
