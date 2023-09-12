@@ -10,6 +10,10 @@ import pandas as pd
 # -- Loading Variables
 script_directory = os.path.dirname(os.path.abspath(sys.argv[0]))
 
+# -- Loading Session Data
+if 'project_data' not in st.session_state:
+    st.session_state.project_data = pd.read_csv(script_directory+'/data/project.csv')
+
 ################################
 ####### GenericFunctions #######
 ################################
@@ -29,10 +33,6 @@ st.title("Dashboard")
 
 # -- Load base files from Google Drive
 save_data_files()
-
-# -- Load Projects
-if 'project_data' not in st.session_state:
-    st.session_state.project_data = pd.read_csv(script_directory+'/data/project.csv')
 
 # -- Show Metrics
 col1, col2, col3 = st.columns(3)
