@@ -10,7 +10,6 @@ import sys
 ################################
 ####### GenericFunctions #######
 ################################
-
 # -- Save Files
 def save_data_files():
     script_directory = os.path.dirname(os.path.abspath(sys.argv[0]))
@@ -23,7 +22,6 @@ def save_data_files():
 ################################
 ####### Display of data ########
 ################################
-
 # -- Streamlit Settings
 st.set_page_config(layout='wide')
 st.title("Dashboard")
