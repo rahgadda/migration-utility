@@ -25,6 +25,7 @@ if len(list_files)>0:
 current_directory = os.path.dirname(os.path.abspath(__file__))
 
 # -- Replace with the path to your CSV file
+print("current_directory -- "+current_directory)
 csv_file_path = current_directory+'/data/project.csv'
 
 # -- Check if the CSV file exists
