@@ -14,10 +14,6 @@ if 'project_data' not in st.session_state:
     st.session_state.project_data = pd.read_csv(script_directory+'/data/project.csv')
 
 ################################
-####### GenericFunctions #######
-################################
-
-################################
 ####### Display of data ########
 ################################
 # -- Streamlit Settings
