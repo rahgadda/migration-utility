@@ -14,8 +14,10 @@ import sys
 # -- Save Files
 def save_data_files():
     script_directory = os.path.dirname(os.path.abspath(sys.argv[0]))
-    if len(script_directory) == 0:
+    if not os.listdir(script_directory+"/data"):
         gdrive.download_file("project.csv",script_directory+"/data/")
+    else:
+        print("Project details already exists")
 
 
 ################################
