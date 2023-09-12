@@ -3,9 +3,12 @@ import requests
 from googleapiclient.discovery import build
 from google.oauth2 import service_account
 from googleapiclient.http import MediaFileUpload
-import json
+import io
 
-# Get environment variables
+################################
+######### Variables ############
+################################
+# -- Get environment variables
 CLIENT_ID = os.getenv('CLIENT_ID')
 CLIENT_EMAIL = os.getenv('CLIENT_EMAIL')
 PRIVATE_KEY_ID = os.getenv('PRIVATE_KEY_ID')
@@ -13,7 +16,7 @@ PRIVATE_KEY = os.getenv('PRIVATE_KEY').replace('\\n', '\n')
 PROJECT_ID = os.getenv("PROJECT_ID")
 CLIENT_X509_CERT_URL = os.getenv("CLIENT_X509_CERT_URL")
 
-# Define your OAuth2 credentials directly
+# -- Define your OAuth2 credentials directly
 JSON_DATA = {
                 "type": "service_account",
                 "project_id": PROJECT_ID,
@@ -28,7 +31,11 @@ JSON_DATA = {
                 "universe_domain": "googleapis.com"
             }
 
-# Authentication
+################################
+####### GenericFunctions #######
+################################
+
+# -- Authentication
 def get_drive_service():
     """
     Authenticate and return the Google Drive API service.
@@ -42,7 +49,7 @@ def get_drive_service():
     service = build('drive', 'v3', credentials=credentials)
     return service
 
-# List all files 
+# -- List all files 
 def list_all_files():
     """
     List all file IDs and names in Google Drive.
@@ -62,8 +69,9 @@ def list_all_files():
                 print(f"File ID: {file['id']}, Name: {file['name']}")
     except Exception as e:
         print(f"Error listing files: {e}")
+        raise e
 
-# Get File ID from File Name
+# -- Get File ID from File Name
 def get_files_id_by_name(file_names):
     """
     List file IDs for specific file names in Google Drive.
@@ -86,7 +94,7 @@ def get_files_id_by_name(file_names):
     return files[0]
 
 
-# Create a new file
+# -- Create a new file
 def create_file(file_path):
     """
     Create a new file on Google Drive.
@@ -112,23 +120,71 @@ def create_file(file_path):
         print(f"Upload error: {e}")
         raise e
 
-# Update existing file
-def update_file(new_file):
+# -- Update existing file
+def update_file(file_path):
     """
     Update an existing file on Google Drive.
     """
 
     # Build the Drive service
     drive_service = get_drive_service()
+    
+    try:
+        # get file id
+        file_name = os.path.basename(file_path)
+        file_id = get_files_id_by_name(file_name)
+        file_metadata = {
+            'name': file_name
+        }
 
-    # get file id
-    file_id = get_files_id_by_name(file_metadata={'name': new_file})
+        # Update the file
+        media_body = MediaFileUpload(file_path, mimetype='application/octet-stream')
+        file = drive_service.files().update(
+                                                fileId=file_id['id'], 
+                                                body=file_metadata,
+                                                media_body=media_body
+                                            ).execute()
+        print(f"Uploaded '{file_name}' with ID: {file['id']}")
+        return file
 
-    # Update the file
-    file = drive_service.files().update(fileId=file_id, body=file_metadata).execute()
-    return file
+    except Exception as e:
+        print(f"Upload error: {e}")
+        raise e
 
-# Delete a file by its ID
+# -- Donwload file to local
+def download_file(file_name, save_path):
+    """
+    Download Google Drive to local
+    """
+
+    # Build the Drive service
+    drive_service = get_drive_service()
+
+    try:
+        file_id = get_files_id_by_name(file_name)
+        request = drive_service.files().get_media(fileId=file_id)
+        fh = io.FileIO(save_path, 'wb')
+        downloader = request.execute()
+
+        # Download the file in chunks
+        if 'size' in downloader:
+            file_size = int(downloader['size'])
+            chunk_size = 1024 * 1024  # 1MB chunks (adjust as needed)
+
+            while downloader:
+                if 'data' in downloader:
+                    fh.write(downloader['data'])
+                status, downloader = service.files().get_media(fileId=file_id, downloadStatus=status).execute()
+                print(f"Downloaded {fh.tell()}/{file_size} bytes.")
+        else:
+            fh.write(downloader)
+        print(f"Downloaded file '{file_id}' to '{save_path}'")
+    
+    except Exception as e:
+        print(f"Download error: {e}")
+        raise e
+
+# -- Delete a file by its ID
 def delete_file(file_id):
     """
     Delete a file in Google Drive by its ID.
@@ -143,8 +199,9 @@ def delete_file(file_id):
         print(f"Deleted file with ID: {file_id}")
     except Exception as e:
         print(f"Error deleting file with ID {file_id}: {e}")
+        raise e
 
-# List and delete all files 
+# -- List and delete all files 
 def delete_all_files():
     """
     List and delete all files in Google Drive.
@@ -170,3 +227,4 @@ def delete_all_files():
             delete_file(file['id'])
     except Exception as e:
         print(f"Error deleting files: {e}")
+        raise e

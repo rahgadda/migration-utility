@@ -5,12 +5,11 @@ import os
 ######### Variables ############
 ################################
 
-################################
-####### GenericFunctions #######
-################################
+# -- Get the current script's directory
+current_directory = os.path.dirname(os.path.abspath(__file__))
 
 ################################
-####### Display of data ########
+####### GenericFunctions #######
 ################################
 
 # -- List data in parent folder
@@ -22,9 +21,6 @@ print()
 print("Deleting Existing Files --> ")
 gdrive.delete_all_files()
 print()
-
-# -- Get the current script's directory
-current_directory = os.path.dirname(os.path.abspath(__file__))
 
 # -- Replace with the path to your CSV file
 print("Base Data Location --> ")
