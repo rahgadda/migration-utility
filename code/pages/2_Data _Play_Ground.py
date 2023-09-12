@@ -1,6 +1,10 @@
 import streamlit as st
 import os
 import sys
+import pandas as pd
+import io
+import re
+import pandasql as psql
 
 ################################
 ######### Variables ############
@@ -12,6 +16,9 @@ script_directory = os.path.dirname(os.path.abspath(sys.argv[0]))
 if 'project_data' not in st.session_state:
     st.session_state.project_data = pd.read_csv(script_directory+'/data/project.csv')
 
+if 'global_dataframe' not in st.session_state:
+    st.session_state.global_dataframe = []
+
 ################################
 ####### GenericFunctions #######
 ################################
@@ -20,9 +27,56 @@ def generate_column_names(end):
     if 1 > end:
         raise ValueError("End value must be grater than 1")
 
-    column_names = [f"Col{i}" for i in range(start, end + 1)]
+    column_names = [f"Col{i}" for i in range(1, end + 1)]
     return column_names
 
+# -- Add missing separator
+def add_missing_separators(file_data,separator,max_header_count,usecols):
+    # Create a list to hold the modified rows
+    modified_rows = []
+    modified_rows.append(usecols)
+
+    for line in file_data:
+        
+        # Count the occurrences of the separator
+        count = line.count(separator)
+
+        # Append the separator if the count is less than the max_header_count
+        if count < max_header_count:
+            separator_str=separator * (max_header_count - count)
+            line = line + separator_str
+        
+        print("line - "+line)
+
+        # Added modified line
+        modified_rows.append(line)
+    
+    return modified_rows
+
+# -- Create global dataframes
+def create_global_df(sep=",", usecols=None,max_header_count=1):
+    try:
+        if uploaded_files is not None:
+            for file in uploaded_files:
+                if usecols is not None:
+                    file_data = io.StringIO(file.read().decode())
+                    modified_rows = add_missing_separators(file_data, sep,max_header_count,usecols)
+                    df = pd.DataFrame(modified_rows)
+                    st.header("Custom")
+                    st.write(df)
+                else:
+                    df = pd.read_csv(file, sep=sep)
+
+                pattern = r'([^/]+)\.csv$'
+                match = re.search(pattern, file.name)
+                file_name = match.group(1)
+
+                st.session_state.global_dataframe.append(file_name)
+
+                globals()['%s' % file_name] = df
+    except Exception as e:
+        st.error(f"Error processing csv: {str(e)}")
+        raise e
 
 ################################
 ####### Display of data ########
@@ -63,10 +117,39 @@ header=col3.checkbox(
 if header:
     header_count=col4.number_input(
                                         label="No of Header",
-                                        value=0,
+                                        value=2,
                                         key="header_count",
-                                        min_value=0, 
+                                        min_value=1, 
                                         max_value=100,
                                         step=1
                                 )
 
+# -- Load Data
+st.text("")
+col1, col2, col3, col4 = st.columns([0.75,0.5,0.5,8.25])
+sep = st.session_state.delimiter
+if col1.button("Load Data"):
+    if st.session_state.header:
+        print("Added Headers")
+        usecols = generate_column_names(st.session_state.header_count)
+        create_global_df(sep,usecols,st.session_state.header_count)
+    else:
+        print("No Headers Added")
+        create_global_df(sep)
+
+if col2.button("SQL"):
+    None
+
+if col3.button("Save"):
+    None
+
+
+# if len(st.session_state.global_dataframe) > 0:
+#     col1, col2, col3 = st.columns(3)
+#     col1.selectbox(
+#                         label="Select Table Name",
+#                         key="table_name",
+#                         options=st.session_state.global_dataframe
+#                   )
+
+#     st.dataframe(psql.sqldf("select * from "+st.session_state.table_name, globals()))
