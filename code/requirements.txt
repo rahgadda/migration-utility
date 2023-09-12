@@ -7,4 +7,3 @@ git+https://github.com/huggingface/transformers
 faiss-cpu
 numpy
 sentence-transformers
-authlib
