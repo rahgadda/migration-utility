@@ -2,6 +2,7 @@ import os
 import requests
 from googleapiclient.discovery import build
 from google.oauth2 import service_account
+from googleapiclient.http import MediaFileUpload
 import json
 
 # Get environment variables
@@ -93,18 +94,23 @@ def create_file(file_name):
     # Build the Drive service
     drive_service = get_drive_service()
 
-    # Set the file metadata
-    file_metadata = {'name': file_name}
-    if PARENT_FOLDER_ID:
+    try:
+        file_name = os.path.basename(file_name)
+        media = MediaFileUpload(file_name, mimetype='application/octet-stream')
+        file_metadata = {'name': file_name}
         file_metadata['parents'] = [PARENT_FOLDER_ID]
-
-    # Create the file
-    file = drive_service.files().create(body=file_metadata).execute()
-    return file
-
+        file = service.files().create(
+            body=file_metadata,
+            media_body=media,
+            fields='id'
+        ).execute()
+        print(f"Uploaded '{file_name}' with ID: {file['id']}")
+        
+        return file
+    except Exception as e:
+        print(f"Upload error: {e}")
+        return None
 # Update existing file
-
-
 def update_file(new_file):
     """
     Update an existing file on Google Drive.
@@ -121,8 +127,6 @@ def update_file(new_file):
     return file
 
 # Delete a file by its ID
-
-
 def delete_file(file_id):
     """
     Delete a file in Google Drive by its ID.
@@ -139,8 +143,6 @@ def delete_file(file_id):
         print(f"Error deleting file with ID {file_id}: {e}")
 
 # List and delete all files in the parent folder
-
-
 def delete_all_files_in_folder():
     """
     List and delete all files in a parent folder in Google Drive using an API key.
