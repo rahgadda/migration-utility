@@ -1,0 +1,21 @@
+Sno|DestinationColumn|SourceColumn|Type|Expression
+1|Record Type|Record Type||
+2|Record Update Date Time|Last Activity Date||
+3|Account Number|Account Number||
+4|Product Class|Product||
+5|Product Group|Product||
+6|Product Code|Company Code||
+7|System Account Status|Account Status||
+8|Asset Classification Code|Company Code||
+9|Account Opening Date or Initial Disbursement Date|First Payment Date||
+10|Account Currency Code|Account Currency||
+11|Outstanding Amount|Outstanding Total Amount||
+12|Overdue Amount|Due Delinquent Amount||
+13|Account Limit|Account Rate||
+14|Days Past Due|Days Past Due||
+15|Delinquency Start Date|First Payment Date||
+16|Interest Rate|Account Rate||
+17|Interest Type|Account Term||
+18|Home Branch|Branch Name||
+19|Delinquent|Due Delinquent Amount||
+20|Billing Flag|Billing Cycle||

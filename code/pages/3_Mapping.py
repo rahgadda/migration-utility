@@ -143,3 +143,41 @@ if col2.button("Save"):
         st.session_state.mapping_df.to_csv(file_name, index=False, sep="|",quoting=csv.QUOTE_NONE)
     else:
         st.error("Transformation not created")
+
+# -- Display Mapping Table
+if (len(destination_df) > 0 and len(source_df) > 0 and len(st.session_state.mapping_df)>0):
+    st.text("")
+    st.header("Mapping Details")
+    st.text("")
+    st.text("")
+    st.session_state.mapping_df = st.data_editor(
+                                                    st.session_state.mapping_df,
+                                                    height=400,
+                                                    width=1200,
+                                                    hide_index=True,
+                                                    column_config={
+                                                                        "Sno": st.column_config.TextColumn(
+                                                                            "Sno"
+                                                                        ),
+                                                                        "DestinationColumn": st.column_config.TextColumn(
+                                                                            "DestinationColumn"
+                                                                        ),
+                                                                        "SourceColumn": st.column_config.SelectboxColumn(
+                                                                            "SourceColumn",
+                                                                            width="medium",
+                                                                            options= source_df["Columns"],
+                                                                        ),
+                                                                        "Type": st.column_config.SelectboxColumn(
+                                                                            "Type",
+                                                                            width="medium",
+                                                                            options=[
+                                                                                "Pandas",
+                                                                                "Constant"
+                                                                            ]
+                                                                        ),
+                                                                        "Expression": st.column_config.TextColumn(
+                                                                            "Expression"
+                                                                        )
+                                                                    },
+                                                                    disabled=["Sno","DestinationColumn"]
+                                                )
