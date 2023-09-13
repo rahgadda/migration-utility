@@ -5,6 +5,7 @@ import pandas as pd
 import io
 import re
 import pandasql as psql
+import base64
 
 ################################
 ######### Variables ############
@@ -19,6 +20,12 @@ if 'project_data' not in st.session_state:
 
 if 'global_dataframe' not in st.session_state:
     st.session_state.global_dataframe=file_details
+
+if 'load_sql' not in st.session_state:
+    st.session_state.load_sql=False
+
+if 'run_sql' not in st.session_state:
+    st.session_state.run_sql=False
 
 ################################
 ####### GenericFunctions #######
@@ -88,6 +95,26 @@ def load_global_df():
         print("No Headers Added")
         create_global_df(sep)
 
+# -- Run SQL Data
+def run_sql_df():
+    for index, row in st.session_state.global_dataframe.iterrows():
+        globals()['%s' % row['file_name']] = row['data']
+
+    try:
+        sql_query = st.text_area(label="Sql Query", value="", key="sql_query", height=200)
+        
+        if st.button("Run SQL Query"):
+            result_df = psql.sqldf(sql_query, globals())
+            st.write("Query Result")
+            st.dataframe(result_df)
+            
+            csv_data = result_df.to_csv(index=False)
+            b64 = base64.b64encode(csv_data.encode()).decode()
+            st.markdown(f'<a href="data:file/csv;base64,{b64}" download="result.csv">Download Result CSV</a>', unsafe_allow_html=True)
+
+    except Exception as e:
+        st.error(f"Error executing SQL query: {str(e)}")
+
 ################################
 ####### Display of data ########
 ################################
@@ -139,13 +166,23 @@ st.text("")
 col1, col2, col3 = st.columns([1,1,8])
 sep = st.session_state.delimiter
 if col1.button("Load Data"):
+    st.session_state.load_sql=True
+    st.session_state.run_sql=False
+
     load_global_df()
 
 if col2.button("SQL"):
-    None
+    st.session_state.load_sql=False
+    st.session_state.run_sql=True
 
-if len(st.session_state.global_dataframe)>0 :
-    print("Count of stored files - "+str(len(st.session_state.global_dataframe)))
+    run_sql_df()
+
+if st.session_state.run_sql:
+   run_sql_df() 
+
+
+if (len(st.session_state.global_dataframe)>0 and st.session_state.load_sql):
+    # print("Count of stored files - "+str(len(st.session_state.global_dataframe)))
     col1, col2, col3 = st.columns(3)
     col1.selectbox(
                         label="Select Table Name",
