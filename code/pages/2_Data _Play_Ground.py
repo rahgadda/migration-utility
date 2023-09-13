@@ -136,15 +136,12 @@ if header:
 
 # -- Load Data
 st.text("")
-col1, col2, col3, col4 = st.columns([0.75,0.5,0.5,8.25])
+col1, col2, col3 = st.columns([1,1,8])
 sep = st.session_state.delimiter
 if col1.button("Load Data"):
     load_global_df()
 
 if col2.button("SQL"):
-    None
-
-if col3.button("Save"):
     None
 
 if len(st.session_state.global_dataframe)>0 :
