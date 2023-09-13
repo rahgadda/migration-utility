@@ -146,6 +146,7 @@ if col2.button("Save"):
 
 # -- Load Exisitng Mapping
 if col3.button("Load Mapping"):
+    cond = (st.session_state.project_data['Project'] == option)
     file_name = script_directory+'/data/'+str(st.session_state.project_data[cond].Id.values[0])+"_"+st.session_state.project_data[cond].Source.values[0]+"_"+st.session_state.project_data[cond].Destination.values[0]+'.csv'
     st.session_state.mapping_df = pd.read_csv(file_name,sep="|",quoting=csv.QUOTE_NONE)
 
