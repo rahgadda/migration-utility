@@ -1,21 +1,21 @@
 Sno|DestinationColumn|SourceColumn|Type|Expression
-1|Record Type|Record Type||
-2|Record Update Date Time|Last Activity Date||
+1|Record Type||Constant|'U'
+2|Record Update Date Time||Pandas|'date.today().strftime("%Y-%m-%d")'
 3|Account Number|Account Number||
-4|Product Class|Product||
-5|Product Group|Product||
-6|Product Code|Company Code||
+4|Product Class||Constant|'LN'
+5|Product Group||Constant|'SECURED'
+6|Product Code|Product||
 7|System Account Status|Account Status||
 8|Asset Classification Code|Company Code||
-9|Account Opening Date or Initial Disbursement Date|First Payment Date||
+9|Account Opening Date or Initial Disbursement Date||Pandas|'pd.to_datetime(df["First Payment Date"], format="%y%m%d").dt.strftime("%Y-%m-%d")'
 10|Account Currency Code|Account Currency||
 11|Outstanding Amount|Outstanding Total Amount||
 12|Overdue Amount|Due Delinquent Amount||
-13|Account Limit|Account Rate||
+13|Account Limit||Constant|0
 14|Days Past Due|Days Past Due||
-15|Delinquency Start Date|First Payment Date||
+15|Delinquency Start Date||Pandas|'pd.to_datetime(df["Next Payment Duedate"], format="%y%m%d").dt.strftime("%Y-%m-%d")'
 16|Interest Rate|Account Rate||
-17|Interest Type|Account Term||
+17|Interest Type||Constant|'Regular'
 18|Home Branch|Branch Name||
 19|Delinquent|Due Delinquent Amount||
-20|Billing Flag|Billing Cycle||
+20|Billing Flag||Constant|'Y'
