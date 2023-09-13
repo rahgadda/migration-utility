@@ -72,64 +72,64 @@ if len(st.session_state.mapping_df)>0:
             accept_multiple_files=True
         )
 
-# -- Button Show Data
-st.text("")
-st.text("")
-col1, col2, col3 = st.columns([0.3,0.5,2.2])
+    # -- Button Show Data
+    st.text("")
+    st.text("")
+    col1, col2, col3 = st.columns([0.3,0.5,2.2])
 
-if col1.button("Show Data"):
-    if source_data_file is not None:
-        for file in source_data_file:
-            df = pd.read_csv(file)
+    if col1.button("Show Data"):
+        if source_data_file is not None:
+            for file in source_data_file:
+                df = pd.read_csv(file)
 
-    # Update dataframe with Pandas Mapping Fields
-    for index, row in st.session_state.mapping_df.iterrows():
-        if row['Type'] == 'Pandas':
-            column_name = row['DestinationColumn']
-            expression = row['Expression'].replace("'", "")
-            df[column_name] = eval(expression)
+        # Update dataframe with Pandas Mapping Fields
+        for index, row in st.session_state.mapping_df.iterrows():
+            if row['Type'] == 'Pandas':
+                column_name = row['DestinationColumn']
+                expression = row['Expression'].replace("'", "")
+                df[column_name] = eval(expression)
 
-    # Creating SQL Statement
-    sql_statement = "SELECT "
-    for index, row in st.session_state.mapping_df.iterrows():
-        destination_column = row['DestinationColumn']
-        source_column = row['SourceColumn']
-        column_type = row['Type']
-        expression = row['Expression'] if 'Expression' in row else None
+        # Creating SQL Statement
+        sql_statement = "SELECT "
+        for index, row in st.session_state.mapping_df.iterrows():
+            destination_column = row['DestinationColumn']
+            source_column = row['SourceColumn']
+            column_type = row['Type']
+            expression = row['Expression'] if 'Expression' in row else None
 
-        if column_type == 'Constant':
-            # Create a dummy column with the provided expression
-            sql_statement += str(expression) + ' AS "' + str(destination_column) + '",'
-        elif column_type == 'Pandas':
-            sql_statement += '"' + str(destination_column) + '" AS "' + str(destination_column) + '",'
+            if column_type == 'Constant':
+                # Create a dummy column with the provided expression
+                sql_statement += str(expression) + ' AS "' + str(destination_column) + '",'
+            elif column_type == 'Pandas':
+                sql_statement += '"' + str(destination_column) + '" AS "' + str(destination_column) + '",'
+            else:
+                # Use the source column as-is
+                sql_statement += '"' + str(source_column) + '" AS "' + str(destination_column) + '",'
+
+        
+        # Remove the trailing comma and space
+        sql_statement = sql_statement[:-1]+" from df"
+        # st.write(sql_statement+" from df")
+
+        st.session_state.df = df
+        st.session_state.sql_statement = sql_statement
+
+        # Display Data
+        st.dataframe(df)
+
+    # -- Button Generate Data
+    if col2.button("Generate Data"):
+        df = st.session_state.df
+        if len(df) == 0 :
+            st.error("No records available to run query, click on Show Data")
         else:
-            # Use the source column as-is
-            sql_statement += '"' + str(source_column) + '" AS "' + str(destination_column) + '",'
-
-    
-    # Remove the trailing comma and space
-    sql_statement = sql_statement[:-1]+" from df"
-    # st.write(sql_statement+" from df")
-
-    st.session_state.df = df
-    st.session_state.sql_statement = sql_statement
-
-    # Display Data
-    st.dataframe(df)
-
-# -- Button Generate Data
-if col2.button("Generate Data"):
-    df = st.session_state.df
-    if len(df) == 0 :
-        st.error("No records available to run query, click on Show Data")
-    else:
-        sql_query = st.text_area(label="Sql Query", value=st.session_state.sql_statement, key="sql_query", height=200)
-        try:
-            result_df = psql.sqldf(sql_query, locals())
-            st.write("Query Result")
-            st.dataframe(result_df)
-            csv_data = result_df.to_csv(index=False)
-            b64 = base64.b64encode(csv_data.encode()).decode()
-            st.markdown(f'<a href="data:file/csv;base64,{b64}" download="result.csv">Download Result CSV</a>', unsafe_allow_html=True)
-        except Exception as e:
-            st.error(f"Error executing SQL query: {str(e)}")
+            sql_query = st.text_area(label="Sql Query", value=st.session_state.sql_statement, key="sql_query", height=200)
+            try:
+                result_df = psql.sqldf(sql_query, locals())
+                st.write("Query Result")
+                st.dataframe(result_df)
+                csv_data = result_df.to_csv(index=False)
+                b64 = base64.b64encode(csv_data.encode()).decode()
+                st.markdown(f'<a href="data:file/csv;base64,{b64}" download="result.csv">Download Result CSV</a>', unsafe_allow_html=True)
+            except Exception as e:
+                st.error(f"Error executing SQL query: {str(e)}")
