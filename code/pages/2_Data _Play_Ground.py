@@ -144,13 +144,13 @@ uploaded_files = col1.file_uploader(
     accept_multiple_files=True
 )
 
-# -- Add header
+# -- Add header Indicator
 header=col3.checkbox(
                 label='Add Header',
                 key="header"
             )
 
-# -- Dynamic Headers
+# -- Dynamic Headers Count
 if header:
     header_count=col4.number_input(
                                         label="No of Header",
@@ -171,16 +171,18 @@ if col1.button("Load Data"):
 
     load_global_df()
 
+# -- Run SQL Query
 if col2.button("SQL"):
     st.session_state.load_sql=False
     st.session_state.run_sql=True
 
     run_sql_df()
 
+# -- Display SQL Query Data
 if st.session_state.run_sql:
    run_sql_df() 
 
-
+# -- Display Loaded Data
 if (len(st.session_state.global_dataframe)>0 and st.session_state.load_sql):
     # print("Count of stored files - "+str(len(st.session_state.global_dataframe)))
     col1, col2, col3 = st.columns(3)

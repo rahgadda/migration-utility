@@ -54,7 +54,7 @@ def semantic_search(query_embedding, index, k=1):
 ################################
 # -- Streamlit Settings
 st.set_page_config(layout='wide')
-st.title("Project")
+st.title("Mapping")
 
 # -- Add Project Dropdown
 st.text("")
@@ -143,6 +143,11 @@ if col2.button("Save"):
         st.session_state.mapping_df.to_csv(file_name, index=False, sep="|",quoting=csv.QUOTE_NONE)
     else:
         st.error("Transformation not created")
+
+# -- Load Exisitng Mapping
+if col3.button("Load Mapping"):
+    file_name = script_directory+'/data/'+str(st.session_state.project_data[cond].Id.values[0])+"_"+st.session_state.project_data[cond].Source.values[0]+"_"+st.session_state.project_data[cond].Destination.values[0]+'.csv'
+    st.session_state.mapping_df = pd.read_csv(file_name,sep="|",quoting=csv.QUOTE_NONE)
 
 # -- Display Mapping Table
 if (len(destination_df) > 0 and len(source_df) > 0 and len(st.session_state.mapping_df)>0):
