@@ -1,11 +1,11 @@
-import streamlit as st
 import os
 import sys
-import pandas as pd
 import io
 import re
-import pandasql as psql
 import base64
+import streamlit as st
+import pandas as pd
+import pandasql as psql
 
 ################################
 ######### Variables ############
