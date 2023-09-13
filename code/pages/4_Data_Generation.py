@@ -117,7 +117,7 @@ if col1.button("Show Data"):
     # Display Data
     st.dataframe(df)
 
-# -- Button SQL
+# -- Button Generate Data
 if col2.button("Generate Data"):
     df = st.session_state.df
     if len(df) == 0 :
